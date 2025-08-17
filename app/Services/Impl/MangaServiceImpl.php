@@ -186,7 +186,7 @@ class MangaServiceImpl implements MangaService
         return $posts->map(function ($post) use ($clearChildCache) {
             $coverUrl = $this->getCover($post->ID, $clearChildCache);
             $post['cover'] = $coverUrl;
-            $post['chapters'] = $this->getChaptersBySlug($post->post_name, $clearChildCache);
+            $post['chapters'] = $this->getChaptersBySlug($post->post_name, $clearChildCache, 3);
             return $post;
         })->toArray();
     }
@@ -244,7 +244,7 @@ class MangaServiceImpl implements MangaService
         return $posts->map(function ($post) {
             $coverUrl = $this->getCover($post->ID, false);
             $post['cover'] = $coverUrl;
-            $post['chapters'] = $this->getChaptersBySlug($post->post_name, false);
+            $post['chapters'] = $this->getChaptersBySlug($post->post_name, false, 3);
             return $post;
         })->toArray();
     }
@@ -281,7 +281,7 @@ class MangaServiceImpl implements MangaService
         return $posts->map(function ($post) {
             $coverUrl = $this->getCover($post->ID, false);
             $post['cover'] = $coverUrl;
-            $post['chapters'] = $this->getChaptersBySlug($post->post_name, false);
+            $post['chapters'] = $this->getChaptersBySlug($post->post_name, false, 3);
             $post['genres'] = $post->genres->pluck('name')->implode(', ');
             return $post;
         })->toArray();
