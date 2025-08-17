@@ -7,6 +7,7 @@ use App\Http\Requests\AdminRegisterRequest;
 use App\Http\Requests\CheckLoginRequest;
 use App\Http\Requests\EditorRegisterRequest;
 use App\Http\Requests\LoginRequest;
+use App\Http\Requests\UpdateDeviceRequest;
 use App\Http\Requests\LogoutRequest;
 use App\Http\Requests\OtpValidationRequest;
 use App\Http\Requests\RegisterRequest;
@@ -227,7 +228,9 @@ class UserController extends Controller
         $userId = $data['user_id'];
         $accessToken = $data['access_token'];
 
-        $user = Users::where('id', $userId)->first();
+        $user = Users::where('id', $userId)
+            ->where('device_id', $data['device_id'])
+            ->first();
 
         $shouldGenerateNewToken = false;
 
@@ -283,6 +286,35 @@ class UserController extends Controller
         throw new HttpResponseException(response([
             "success" => true,
             "message" => "logout success"
+        ], 200));
+    }
+    public function updateDevice(UpdateDeviceRequest $request): void
+    {
+        $data = $request->validated();
+
+        $user = Users::where('username', $data['username'])
+            ->first();
+
+        if (!$user) {
+            throw new HttpResponseException(response([
+                "success" => false,
+                "message" => "user not found"
+            ], 404));
+        }
+
+        $user->device_id = $data['device_id'];
+        $user->access_token  = Str::random(64);
+        $user->access_token_expire = now()->addDays(4);
+
+        $user->save();
+
+        throw new HttpResponseException(response([
+            "success" => true,
+            "data" => [
+                "user" => new UserResource($user),
+                "access_token" => $user->access_token,
+                "access_token_expire" => $user->access_token_expire->format('Y-m-d H:i:s')
+            ]
         ], 200));
     }
     public function sendOtp(SendOtpRequest $request): void

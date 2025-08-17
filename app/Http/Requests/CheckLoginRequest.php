@@ -16,6 +16,7 @@ class CheckLoginRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'device_id' => ['required', 'string'],
             'user_id' => ['required', 'int'],
             'access_token' => ['required', 'string'],
         ];

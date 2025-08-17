@@ -20,6 +20,7 @@ Route::middleware('api_key')->group(function(){
 
         Route::put("/check-login", [UserController::class, 'checkLogin']);
         Route::put("/password", [UserController::class, 'updatePw']);
+        Route::put("/updateDevice", [UserController::class, 'updateDevice']);
 
         Route::delete("/logout", [UserController::class, 'logout']);
     });

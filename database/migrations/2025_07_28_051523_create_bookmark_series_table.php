@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('bookmark_series', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id')->nullable(false)->default(0);
-            $table->text('slug_series')->nullable(false)->default('slug');
+            $table->string('slug_series')->nullable(false)->default('slug');
             $table->timestamps();
             $table->foreign('user_id')->on('users')->references('id')->onDelete('cascade');
         });

@@ -34,7 +34,7 @@ class MangaServiceImpl implements MangaService
             return $this->fetchPopularToday($limit, false);
         });
     }
-    public function latest(int $limit = 20, bool $clearCache = false): array
+    public function latest(int $limit = 20, bool $clearCache = true): array
     {
         $cacheKey = "latest:manga:limit:{$limit}";
 
@@ -201,7 +201,7 @@ class MangaServiceImpl implements MangaService
         return $posts->map(function ($post) use ($clearChildCache) {
             $coverUrl = $this->getCover($post->ID, $clearChildCache);
             $post['cover'] = $coverUrl;
-            $post['chapters'] = $this->getChaptersBySlug($post->post_name, $clearChildCache);
+            $post['chapters'] = $this->getChaptersBySlug($post->post_name, $clearChildCache, 3);
             return $post;
         })->toArray();
     }
@@ -220,7 +220,7 @@ class MangaServiceImpl implements MangaService
         return $posts->map(function ($post) use ($clearChildCache) {
             $coverUrl = $this->getCover($post->ID, $clearChildCache);
             $post['cover'] = $coverUrl;
-            $post['chapters'] = $this->getChaptersBySlug($post->post_name, $clearChildCache);
+            $post['chapters'] = $this->getChaptersBySlug($post->post_name, $clearChildCache, 3);
             return $post;
         })->toArray();
     }
@@ -259,7 +259,7 @@ class MangaServiceImpl implements MangaService
         return $posts->map(function ($post) {
             $coverUrl = $this->getCover($post->ID, false);
             $post['cover'] = $coverUrl;
-            $post['chapters'] = $this->getChaptersBySlug($post->post_name, false);
+            $post['chapters'] = $this->getChaptersBySlug($post->post_name, true, 1);
             return $post;
         })->toArray();
     }
@@ -307,7 +307,7 @@ class MangaServiceImpl implements MangaService
             $slugSeries = $termRelationship->termTaxonomy->term->slug;
         }
 
-        $otherChapters = $slugSeries ? $this->fetchChaptersBySlugData($slugSeries) : [];
+        $otherChapters = $slugSeries ? $this->fetchChaptersBySlugData($slugSeries, null) : [];
 
         return [
             'chapters' => $post->post_content,
@@ -330,7 +330,7 @@ class MangaServiceImpl implements MangaService
         }
 
         $coverUrl = $this->getCover($post->ID, $clearCache);
-        $chapters = $this->getChaptersBySlug($post->post_name, $clearCache);
+        $chapters = $this->getChaptersBySlug($post->post_name, $clearCache, null);
 
         return [
             'ID' => $post->ID,
@@ -356,24 +356,24 @@ class MangaServiceImpl implements MangaService
 
         return $series;
     }
-    private function getChaptersBySlug(string $slug, bool $clearCache): array
+    private function getChaptersBySlug(string $slug, bool $clearCache, ?int $limit): array
     {
         $cacheKey = "chapters:slug:{$slug}";
 
         if ($clearCache) {
             $this->forgetCacheValue($cacheKey);
 
-            $freshChapters = $this->fetchChaptersBySlugData($slug);
+            $freshChapters = $this->fetchChaptersBySlugData($slug, $limit);
             $this->setCacheValue($cacheKey, $freshChapters);
 
             return $freshChapters;
         }
 
-        return $this->getCacheValue($cacheKey, function () use ($slug) {
-            return $this->fetchChaptersBySlugData($slug);
+        return $this->getCacheValue($cacheKey, function () use ($slug, $limit) {
+            return $this->fetchChaptersBySlugData($slug, $limit);
         });
     }
-    private function fetchChaptersBySlugData(string $slug): array
+    private function fetchChaptersBySlugData(string $slug, ?int $limit = null): array
     {
         $term = WpTerms::where('slug', $slug)->first();
 
@@ -381,13 +381,27 @@ class MangaServiceImpl implements MangaService
             return [];
         }
 
+        // Ambil semua data terlebih dahulu tanpa ordering
         $termRelationships = WpTermRelationships::whereHas('termTaxonomy', function ($query) use ($term) {
             $query->where('term_id', $term->term_id);
-        })->orderBy('object_id', 'desc')->get();
+        })->get();
 
-        return $termRelationships->map(function ($relationship, $index) use ($termRelationships) {
+        // Map ke array chapters dengan chapterNum
+        $chapters = $termRelationships->map(function ($relationship) {
             return $this->getSingleChapterById($relationship->object_id);
-        })->filter()->values()->toArray();
+        })->filter()->values();
+
+        // Sort berdasarkan chapterNum dari terbesar ke terkecil
+        $sortedChapters = $chapters->sortByDesc(function ($chapter) {
+            return (int) $chapter['chapterNum']; // Cast ke integer untuk sorting numerik
+        })->values();
+
+        // Terapkan limit jika ada
+        if ($limit > 0) {
+            $sortedChapters = $sortedChapters->take($limit);
+        }
+
+        return $sortedChapters->toArray();
     }
     private function getSingleChapterById(int $id, bool $showChapter = false): ?array
     {
