@@ -190,7 +190,7 @@ class MangaServiceImpl implements MangaService
         return $posts->map(function ($post) use ($clearChildCache) {
             $coverUrl = $this->getCover($post->ID, $clearChildCache);
             $post['cover'] = $coverUrl;
-            $post['chapters'] = $this->getChaptersBySlug($post->post_name, $clearChildCache, 3);
+            $post['chapters'] = $this->getChaptersBySlug($post->post_name, $clearChildCache, 1);
             return $post;
         })->toArray();
     }

@@ -26,6 +26,7 @@ class PopularTodayResource extends JsonResource
             'slug' => $this->resource->post_name,
             'cover' => $this->resource->cover,
             'badge' => isset($metaValues['ero_hot']) ? "Hot" : null,
+            'chapters' => $this->resource->chapters,
         ];
     }
 }
