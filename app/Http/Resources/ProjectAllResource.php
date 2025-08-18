@@ -27,6 +27,7 @@ class ProjectAllResource extends JsonResource
             'cover' => $this->resource->cover,
             'badge' => isset($metaValues['ero_hot']) ? "Hot" : null,
             'rating' => $metaValues['ero_score'] ?? 0,
+            'status' => $metaValues['ero_status'],
             'chapters' => $this->resource->chapters,
         ];
     }

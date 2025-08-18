@@ -179,6 +179,7 @@ class MangaServiceImpl implements MangaService
     private function fetchPopularToday(int $limit, bool $clearChildCache): array
     {
         $posts = WpPosts::where('post_type', 'manga')
+            ->where('post_status', 'publish')
             ->with('meta')
             ->join('wp_postmeta', 'wp_posts.ID', '=', 'wp_postmeta.post_id')
             ->where('wp_postmeta.meta_key', 'wpb_post_views_count')
@@ -196,6 +197,7 @@ class MangaServiceImpl implements MangaService
     private function fetchLatestManga(int $limit, bool $clearChildCache): array
     {
         $posts = WpPosts::where('post_type', 'manga')
+            ->where('post_status', 'publish')
             ->with('meta')
             ->orderBy('post_modified', 'desc')
             ->limit($limit)
@@ -211,6 +213,7 @@ class MangaServiceImpl implements MangaService
     private function fetchProjectAll(int $limit, bool $clearChildCache): array
     {
         $posts = WpPosts::where('post_type', 'manga')
+            ->where('post_status', 'publish')
             ->with('meta')
             ->whereHas('meta', function ($query) {
                 $query->where('meta_key', 'ero_project')
@@ -230,6 +233,8 @@ class MangaServiceImpl implements MangaService
     private function fetchSearch(?string $title, ?array $genres): array
     {
         $query = WpPosts::where('post_type', 'manga')
+            ->where('post_type', 'manga')
+                ->where('post_status', 'publish')
             ->with('meta');
 
         if ($title) {
@@ -254,6 +259,7 @@ class MangaServiceImpl implements MangaService
     private function fetchRecommendation(int $limit): array
     {
         $posts = WpPosts::where('post_type', 'manga')
+            ->where('post_status', 'publish')
             ->with('meta')
             ->inRandomOrder()
             ->limit($limit)
@@ -271,6 +277,7 @@ class MangaServiceImpl implements MangaService
         $topCount = 10;
 
         $posts = WpPosts::where('post_type', 'manga')
+            ->where('post_status', 'publish')
             ->with('meta')
             ->with('genres')
             ->join('wp_postmeta', 'wp_posts.ID', '=', 'wp_postmeta.post_id')
