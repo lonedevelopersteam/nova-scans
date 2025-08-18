@@ -13,4 +13,6 @@ interface MangaService
     public function readingPage(string $slugChapter, bool $clearCache) :array;
     public function seriesDetail(string $slugSeries, bool $clearCache) :array;
     public function bookmark(string $userId, bool $clearCache) :array;
+    public function clearCache() :bool;
+
 }

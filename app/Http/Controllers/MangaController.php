@@ -24,7 +24,7 @@ class MangaController extends Controller
     }
 
     public function popularToday(Request $request) :void {
-        $clearCache = $request->input('clear-cache', false);
+        $clearCache = $request->boolean('clear-cache');
 
         $projects = $this->mangaService->popularToday($clearCache);
         throw new HttpResponseException(response([
@@ -34,7 +34,7 @@ class MangaController extends Controller
     }
     public function latest(Request $request) :void {
         $limit = $request->input('limit', 20);
-        $clearCache = $request->input('clear-cache', false);
+        $clearCache = $request->boolean('clear-cache');
 
         $projects = $this->mangaService->latest($limit, $clearCache);
         throw new HttpResponseException(response([
@@ -44,7 +44,7 @@ class MangaController extends Controller
     }
     public function projectAll(Request $request) :void {
         $limit = $request->input('limit', 20);
-        $clearCache = $request->input('clear-cache', false);
+        $clearCache = $request->boolean('clear-cache');
 
         $projects = $this->mangaService->projectAll($limit, $clearCache);
         throw new HttpResponseException(response([
@@ -81,7 +81,7 @@ class MangaController extends Controller
     }
     public function heroSlider(Request $request) :void {
         $limit = $request->input('limit', 5);
-        $clearCache = $request->input('clear-cache', false);
+        $clearCache = $request->boolean('clear-cache');
 
         $projects = $this->mangaService->heroSliders($limit, $clearCache);
         throw new HttpResponseException(response([
@@ -90,7 +90,7 @@ class MangaController extends Controller
         ], 200));
     }
     public function readingPage(string $slugChapter, Request $request) :void {
-        $clearCache = $request->input('clear-cache', false);
+        $clearCache = $request->boolean('clear-cache');
 
         $projects = $this->mangaService->readingPage($slugChapter, $clearCache);
         throw new HttpResponseException(response([
@@ -99,7 +99,7 @@ class MangaController extends Controller
         ], 200));
     }
     public function seriesDetail(string $slugSeries, Request $request) :void {
-        $clearCache = $request->input('clear-cache', false);
+        $clearCache = $request->boolean('clear-cache');
 
         $projects = $this->mangaService->seriesDetail($slugSeries, $clearCache);
         throw new HttpResponseException(response([
@@ -108,12 +108,20 @@ class MangaController extends Controller
         ], 200));
     }
     public function getBookmark(string $userId, Request $request) :void {
-        $clearCache = $request->input('clear-cache', false);
+        $clearCache = $request->boolean('clear-cache');
 
         $projects = $this->mangaService->bookmark($userId, $clearCache);
         throw new HttpResponseException(response([
             "success" => true,
             "data" => new BookmarkCollection($projects)
+        ], 200));
+    }
+
+    public function clearCache() :void {
+        $result = $this->mangaService->clearCache();
+         throw new HttpResponseException(response([
+            "success" => true,
+            "data" => ($result) ? "Success clear manga" : "Failed to clear manga",
         ], 200));
     }
 }

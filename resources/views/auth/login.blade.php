@@ -104,11 +104,11 @@
 
         function showAlert(message, type = 'danger') {
             alertContainer.innerHTML = `
-                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            `;
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
         }
 
         function setCookie(name, value, days) {
@@ -179,7 +179,14 @@
                     }, 1500);
 
                 } else {
-                    showAlert(data.message || 'Username atau password salah.', 'danger');
+                    // Tangani pesan error spesifik dari API
+                    if (data.message === 'access denied: role not authorized') {
+                        showAlert('Akses ditolak: Anda tidak memiliki izin.');
+                    } else if (data.message === 'password wrong') {
+                        showAlert('Password yang Anda masukkan salah.');
+                    } else {
+                        showAlert(data.message || 'Terjadi kesalahan. Mohon coba lagi.', 'danger');
+                    }
                 }
 
             } catch (error) {

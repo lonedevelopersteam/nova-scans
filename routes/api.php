@@ -36,6 +36,8 @@ Route::middleware('api_key')->group(function(){
         Route::get("/seriesDetail/{slugSeries}", [MangaController::class, 'seriesDetail']);
 
         Route::post("/bookmark/", [BookmarkSeriesController::class, 'bookmarkSeries']);
+
+        Route::delete("/clearCache", [MangaController::class, 'clearCache']);
     });
 });
 
@@ -43,6 +45,7 @@ Route::middleware('token')->group(function(){
     Route::prefix('v1/users')->group(function(){
         Route::get("/", [UserController::class, 'getUsers']);
         Route::get("/search", [UserController::class, 'searchUsers']);
+        Route::get("/total", [UserController::class, 'getTotalUser']);
 
         Route::delete("/{id}", [UserController::class, 'deleteUser']);
     });

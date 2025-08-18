@@ -12,6 +12,7 @@ use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Str;
 
 class MangaServiceImpl implements MangaService
 {
@@ -34,7 +35,7 @@ class MangaServiceImpl implements MangaService
             return $this->fetchPopularToday($limit, false);
         });
     }
-    public function latest(int $limit = 20, bool $clearCache = true): array
+    public function latest(int $limit = 20, bool $clearCache = false): array
     {
         $cacheKey = "latest:manga:limit:{$limit}";
 
@@ -155,21 +156,23 @@ class MangaServiceImpl implements MangaService
     }
     public function bookmark(string $userId, bool $clearCache): array
     {
-        $cacheKey = "bookmark:series:$userId";
+        return $this->fetchBookmark($userId, $clearCache);
+    }
+    public function clearCache(): bool
+    {
+        try {
+            Log::info("Attempting to clear all data from Redis...");
 
-        if ($clearCache) {
-            $this->forgetCacheValue($cacheKey);
-            $this->clearCoverCaches();
+            // Jalankan perintah FLUSHALL untuk menghapus semua keys
+            Redis::flushall();
 
-            $freshData = $this->fetchBookmark($userId, true);
-            $this->setCacheValue($cacheKey, $freshData);
-
-            return $freshData;
+            Log::info("All Redis data has been cleared successfully.");
+            return true;
+        } catch (Exception $e) {
+            // Tangkap error jika Redis tidak bisa dijangkau atau perintah gagal
+            Log::error("Failed to clear all Redis data: " . $e->getMessage());
+            return false;
         }
-
-        return $this->getCacheValue($cacheKey, function () use ($userId) {
-            return $this->fetchBookmark($userId, false);
-        });
     }
 
     // Helper Function
@@ -462,7 +465,10 @@ class MangaServiceImpl implements MangaService
     private function isRedisAvailable(): bool
     {
         try {
-            Cache::store('redis')->get('test_connection');
+            $redis = Redis::connection();
+
+            $redis->ping();
+
             return true;
         } catch (Exception $e) {
             Log::warning('Redis connection failed: ' . $e->getMessage());
@@ -471,10 +477,6 @@ class MangaServiceImpl implements MangaService
     }
     private function getCacheValue(string $key, callable $callback)
     {
-        if (!$this->isRedisAvailable()) {
-            return $callback();
-        }
-
         try {
             return Cache::store('redis')->remember($key, 3600, $callback); // 1 hour = 3600 seconds
         } catch (Exception $e) {
@@ -523,4 +525,5 @@ class MangaServiceImpl implements MangaService
             Log::warning('Failed to clear cover caches: ' . $e->getMessage());
         }
     }
+
 }

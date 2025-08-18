@@ -451,6 +451,41 @@ class UserController extends Controller
             "data" => new UserCollection($users)
         ], 200));
     }
+    public function getTotalUser(Request $request): void
+    {
+        $cacheKeyAdmin = 'total_users_admin';
+        $cacheKeyEditor = 'total_users_editor';
+        $cacheKeyReader = 'total_users_reader';
+        $cacheDuration = 3600;
+
+        if ($request->boolean('clear_cache')) {
+            Cache::forget($cacheKeyAdmin);
+            Cache::forget($cacheKeyEditor);
+            Cache::forget($cacheKeyReader);
+        }
+
+        $totalAdmin = Cache::remember($cacheKeyAdmin, $cacheDuration, function () {
+            return Users::where('role', 'admin')->count();
+        });
+
+        $totalEditor = Cache::remember($cacheKeyEditor, $cacheDuration, function () {
+            return Users::where('role', 'editor')->count();
+        });
+
+        $totalReader = Cache::remember($cacheKeyReader, $cacheDuration, function () {
+            return Users::where('role', 'reader')->count();
+        });
+
+        throw new HttpResponseException(response()->json([
+            "success" => true,
+            "message" => "Success get total users",
+            "data" => [
+                "total_admin" => $totalAdmin,
+                "total_editor" => $totalEditor,
+                "total_reader" => $totalReader,
+            ]
+        ], 200));
+    }
     public function searchUsers(Request $request): void
     {
         $searchQuery = $request->input('q');
