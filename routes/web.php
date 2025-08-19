@@ -2,10 +2,23 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ManageUserController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('check_login')->group(function(){
     Route::get('/', [DashboardController::class, 'showTemplate'])->name("dashboard");
+
+    Route::prefix('/users')->group(function(){
+        Route::post("/", [ManageUserController::class, 'createUser']);
+
+        Route::get("/admin", [ManageUserController::class, 'showManageAdmin']);
+        Route::get("/editor", [ManageUserController::class, 'showManageEditor']);
+        Route::get("/reader", [ManageUserController::class, 'showManageReader']);
+        Route::get("/", [ManageUserController::class, 'getUsers']);
+        Route::get("/search", [ManageUserController::class, 'searchUser']);
+
+        Route::delete("/{userId}", [ManageUserController::class, 'deleteUser']);
+    });
 });
 
 Route::middleware('tackle_admin_exists')->group(function(){

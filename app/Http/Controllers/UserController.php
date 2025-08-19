@@ -419,7 +419,7 @@ class UserController extends Controller
         $perPage = $request->input('per_page', 10);
         $perPage = max(1, (int)$perPage);
 
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $currentPage = (int)$request->input('page', 1);
 
         $role = $request->input('role');
         $role = trim($role);
@@ -435,14 +435,14 @@ class UserController extends Controller
             Cache::forget($cacheKey);
         }
 
-        $users = Cache::remember($cacheKey, $cacheDuration, function () use ($perPage, $role) {
+        $users = Cache::remember($cacheKey, $cacheDuration, function () use ($perPage, $role, $currentPage) {
             $query = Users::query();
 
             if (!empty($role)) {
                 $query->where('role', $role);
             }
 
-            return $query->paginate($perPage);
+            return $query->paginate($perPage, ['*'], 'page', $currentPage);
         });
 
         throw new HttpResponseException(response([

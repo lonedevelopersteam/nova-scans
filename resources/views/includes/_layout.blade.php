@@ -1,4 +1,27 @@
 <style>
+    .main-container {
+        margin-left: 250px;
+        flex-grow: 1;
+        transition: margin-left 0.3s ease;
+    }
+
+    .header {
+        background-color: #fff;
+        padding: 15px 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    .header h1 {
+        margin: 0;
+        font-size: 24px;
+        color: #2c3e50;
+    }
+    .main-content {
+        padding: 20px;
+    }
+
     /* Sidebar Styles */
     .sidebar {
         width: 250px;
@@ -46,9 +69,21 @@
     .sidebar .submenu.show {
         display: block;
     }
+    .hamburger-menu {
+        background-color: transparent;
+        color: #2c3e50;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        display: none;
+    }
 
     /* Responsiveness */
     @media (max-width: 768px) {
+        .hamburger-menu {
+            display: block;
+        }
+
         .sidebar {
             transform: translateX(-250px);
         }
@@ -62,9 +97,6 @@
 </style>
 
 <div class="sidebar" id="sidebar">
-    <button class="hamburger-menu" id="toggleSidebar">
-        <i class="fas fa-bars"></i>
-    </button>
     <h2>Cosmic Scan</h2>
     <a href="{{ url('/') }}" id="dashboard-link">
         <i class="fas fa-tachometer-alt"></i> Dashboard
@@ -83,12 +115,22 @@
             <i class="fas fa-user"></i> Reader
         </a>
     </div>
-    <a href="{{ url('settings') }}" id="settings-link">
-        <i class="fas fa-cog"></i> Settings
-    </a>
     <a href="#" id="logout-link">
         <i class="fas fa-sign-out-alt"></i> Logout
     </a>
+</div>
+
+<div class="main-container" id="main-container">
+    <header class="header">
+        <button class="hamburger-menu" id="toggleSidebar">
+            <i class="fas fa-bars"></i>
+        </button>
+        @yield('header-title')
+    </header>
+
+    <div class="main-content">
+        @yield('content')
+    </div>
 </div>
 
 <script>
@@ -127,11 +169,6 @@
             document.getElementById('editor-link').classList.add('active');
         } else if (currentUrl.includes('/users/reader')) {
             document.getElementById('reader-link').classList.add('active');
-        }
-
-        // Cek tautan Settings
-        if (currentUrl.includes('/settings')) {
-            document.getElementById('settings-link').classList.add('active');
         }
     }
 
@@ -177,5 +214,15 @@
 
         // Mengalihkan pengguna ke halaman login
         window.location.href = '/login';
+    });
+
+    // Handle resize window
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.classList.remove('sidebar-open');
+            }
+        }
     });
 </script>
